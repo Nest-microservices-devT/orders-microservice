@@ -5,6 +5,8 @@ import { EnvVars } from 'src/interfaces';
 const envsSchema = joi
   .object({
     PORT: joi.number().required(),
+    PRODUCTS_MICROSERVICE_HOST: joi.string().required(),
+    PRODUCTS_MICROSERVICE_PORT: joi.number().required(),
   })
   .unknown(true);
 
@@ -15,4 +17,6 @@ const envVars: EnvVars = value;
 
 export const envs = {
   port: envVars.PORT,
+  products_microservice_host: envVars.PRODUCTS_MICROSERVICE_HOST,
+  products_microservice_port: envVars.PRODUCTS_MICROSERVICE_PORT,
 };
