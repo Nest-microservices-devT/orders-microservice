@@ -12,7 +12,7 @@ import {
 } from './dto/index';
 import { PrismaClient } from '@prisma/client';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { PRODUCT_SERVICE } from 'src/config';
+import { NATS_SERVICE } from 'src/config';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -22,9 +22,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
     await this.$connect();
     this.logger.log('Database Connected');
   }
-  constructor(
-    @Inject(PRODUCT_SERVICE) private readonly productsClient: ClientProxy,
-  ) {
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {
     super();
   }
 
@@ -177,7 +175,7 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   private async getProductsInfo(productsIds: number[]) {
     // Envia una solicitud al servicio de productos para validar los IDs
     const products = await firstValueFrom(
-      this.productsClient.send({ cmd: 'validate_products' }, productsIds),
+      this.client.send('validateProducts', productsIds),
     );
     // Construye un objeto que mapea IDs de productos a detalles completos de productos
     return products.reduce((acc, product) => {
