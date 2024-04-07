@@ -8,12 +8,15 @@ import {
 import {
   ChangeOrderStatusDto,
   CreateOrderDto,
+  OrderItemDto,
   OrderPaginationDto,
+  PaidOrderDto,
 } from './dto/index';
 import { PrismaClient } from '@prisma/client';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { NATS_SERVICE } from 'src/config';
 import { firstValueFrom } from 'rxjs';
+import { OrderWithProducts } from './interfaces';
 
 @Injectable()
 export class OrdersService extends PrismaClient implements OnModuleInit {
@@ -171,6 +174,39 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
     });
   }
 
+  async createPaymentSession(order: OrderWithProducts) {
+    const paymentSession = await firstValueFrom(
+      this.client.send('create.payment.session', {
+        orderId: order.id,
+        currency: 'usd',
+        items: order.OrderItem.flatMap((item) => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      }),
+    );
+
+    return paymentSession;
+  }
+
+  async paidOrder(paidOrderDto: PaidOrderDto) {
+    await this.order.update({
+      where: { id: paidOrderDto.orderId },
+      data: {
+        status: 'PAID',
+        paid: true,
+        paidAt: new Date(),
+        stripeChargeId: paidOrderDto.stripePaymentId,
+        OrderReceipt: {
+          create: {
+            receiptUrl: paidOrderDto.receiptUrl,
+          },
+        },
+      },
+    });
+  }
+
   // Función para obtener información de productos a partir de sus IDs
   private async getProductsInfo(productsIds: number[]) {
     // Envia una solicitud al servicio de productos para validar los IDs
@@ -185,7 +221,10 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
   }
 
   // Función para enriquecer los elementos de pedido con información de productos
-  private async responseWithProductInfo(orderItems: any[], products: any) {
+  private async responseWithProductInfo(
+    orderItems: OrderItemDto[],
+    products: any,
+  ) {
     return orderItems.flatMap((orderItem) => ({
       ...orderItem,
       // Agrega el nombre del producto al elemento de pedido
