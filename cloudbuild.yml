@@ -1,5 +1,16 @@
 steps:
-- name: "gcr.io/cloud-builders/docker"
-  args: ["build", "-t", "us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms", "-f", "dockerfile.prod", "--platform=linux/amd64", "."]
-- name: "gcr.io/cloud-builders/docker"
-  args: ["push", "us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms"]
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - -c
+  - |
+    docker build -t us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms -f dockerfile.prod --platform=linux/amd64 --build-arg ORDERS_DATABASE_URL_PROD=$$ORDERS_DATABASE_URL_PROD .
+  secretEnv: ['ORDERS_DATABASE_URL_PROD']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms']
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/201119622152/secrets/ORDERS_DATABASE_URL_PROD/versions/1
+    env: 'ORDERS_DATABASE_URL_PROD'
