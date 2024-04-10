@@ -4,13 +4,13 @@ steps:
   args:
   - -c
   - |
-    docker build -t us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms -f dockerfile.prod --platform=linux/amd64 --build-arg DATABASE_URL=$$ORDERS_DATABASE_URL_PROD .
-  secretEnv: ['ORDERS_DATABASE_URL_PROD']
+    docker build -t us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms -f dockerfile.prod --platform=linux/amd64 --build-arg ORDERS_DATABASE_URL_PROD=$$DATABASE_URL .
+  secretEnv: ['DATABASE_URL']
 
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-east1-docker.pkg.dev/microservice-nestjs-419903/image-registry/orders-ms']
 
 availableSecrets:
   secretManager:
-  - versionName: projects/201119622152/secrets/ORDERS_DATABASE_URL_PROD/versions/1
-    env: 'ORDERS_DATABASE_URL_PROD'
+  - versionName: projects/201119622152/secrets/orders_database_url_prod/versions/1
+    env: 'DATABASE_URL'
