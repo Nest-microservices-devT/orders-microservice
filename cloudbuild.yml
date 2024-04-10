@@ -12,5 +12,5 @@ steps:
 
 availableSecrets:
   secretManager:
-  - versionName: projects/201119622152/secrets/ORDERS_DATABASE_URL_PROD
+  - versionName: projects/201119622152/secrets/ORDERS_DATABASE_URL_PROD/versions/1
     env: 'ORDERS_DATABASE_URL_PROD'
